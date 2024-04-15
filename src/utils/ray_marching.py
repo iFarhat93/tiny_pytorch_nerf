@@ -18,10 +18,10 @@ def get_rays_sample_space(H, W, focal, c2w, near, far, N_samples, rand=False):
     pts_flat = tf.reshape(pts, [-1,3])
     
     pts_flat_torch = torch.from_numpy(pts_flat.numpy())
-    rays_o_torch = torch.from_numpy(rays_o.numpy())
-    rays_d_torch = torch.from_numpy(rays_d.numpy())
+    #rays_o_torch = torch.from_numpy(rays_o.numpy())
+    #rays_d_torch = torch.from_numpy(rays_d.numpy())
     z_vals_torch = torch.from_numpy(z_vals.numpy())
-    return pts_flat_torch, z_vals_torch, rays_o_torch, rays_d_torch
+    return pts_flat_torch, z_vals_torch
 
 def render_rays(sigma_a, rgb, z_vals):
     # Calculate distances between z values

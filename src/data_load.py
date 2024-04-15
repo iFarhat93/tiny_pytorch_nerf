@@ -21,9 +21,9 @@ def test_train_split(data_path):
     H, W = images.shape[1:3]
     #print(images.shape, poses.shape, focal)
 
-    eval, evalpose = images[images.shape[0]-2], poses[poses.shape[0]-2]
+    eval, evalpose = images[images.shape[0]-4], poses[poses.shape[0]-2]
     test, testpose = images[images.shape[0]-1], poses[poses.shape[0]-1]
-    train, trainpose = images[:images.shape[0]-3,...,:3], poses[:poses.shape[0]-3]
+    train, trainpose = images[:images.shape[0]-5,...,:3], poses[:poses.shape[0]-5]
     data_name = os.path.splitext(os.path.basename(data_path))[0]
     return H, W, train, trainpose, eval, evalpose, test, testpose, focal, data_name
 

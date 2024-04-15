@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class MyModel(nn.Module):
-    def __init__(self, D=8, W=256, L_embed=6):
+    def __init__(self, D=8, W=512, L_embed=6):
         super(MyModel, self).__init__()
         self.D = D
         if L_embed is None:
@@ -20,4 +20,5 @@ class MyModel(nn.Module):
             x = layer(x)
             x = torch.relu(x)
         x = self.output_layer(x)
+        #print(self.output_layer.weight)
         return x
