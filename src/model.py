@@ -21,4 +21,5 @@ class MyModel(nn.Module):
             x = torch.relu(x)
         x = self.output_layer(x)
         #print(self.output_layer.weight)
+        
         return x
