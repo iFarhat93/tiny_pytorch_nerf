@@ -18,8 +18,6 @@ def get_rays_sample_space(H, W, focal, c2w, near, far, N_samples, rand=False):
     pts_flat = tf.reshape(pts, [-1,3])
     
     pts_flat_torch = torch.from_numpy(pts_flat.numpy())
-    #rays_o_torch = torch.from_numpy(rays_o.numpy())
-    #rays_d_torch = torch.from_numpy(rays_d.numpy())
     z_vals_torch = torch.from_numpy(z_vals.numpy())
     return pts_flat_torch, z_vals_torch
 
@@ -27,7 +25,7 @@ def torch_get_rays_sample_space(H, W, focal, c2w, near, far, N_samples, rand=Fal
     # Create meshgrid for pixel coordinates
     if isinstance(c2w, np.ndarray):
         c2w = torch.from_numpy(c2w).float()
-        
+
     i, j = torch.meshgrid(torch.arange(W, dtype=torch.float32), torch.arange(H, dtype=torch.float32), indexing='xy')
     
     dirs = torch.stack([(i - W * 0.5) / focal, -(j - H * 0.5) / focal, -torch.ones_like(i)], dim=-1)
@@ -39,9 +37,10 @@ def torch_get_rays_sample_space(H, W, focal, c2w, near, far, N_samples, rand=Fal
     
     # Sample depth values along each ray
     z_vals = torch.linspace(near, far, N_samples)
+    z_vals = z_vals.expand(rays_o.shape[0], rays_o.shape[1], N_samples)
+    z_vals = z_vals.clone() 
     if rand:
-        z_vals += torch.rand(list(rays_o.shape[:-1]) + [N_samples]) * (far - near) / N_samples
-    
+        z_vals += torch.rand(rays_o.shape[0], rays_o.shape[1], N_samples) * (far - near) / N_samples
     # Calculate 3D positions of samples along rays
     pts = rays_o[..., None, :] + rays_d[..., None, :] * z_vals[..., :, None]
     

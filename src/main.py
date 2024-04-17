@@ -1,6 +1,6 @@
 from data_load import test_train_split
-from data_load import NeRFDataset
-from model import MyModel
+from data_load import EDU_NeRFDataset
+from model import MyModel, EnhancedModel
 from pos_encoding import posenc
 from utils.ray_marching import torch_get_rays_sample_space
 from utils.ray_marching import render_rays
@@ -23,9 +23,7 @@ import torch.optim as optim
 
 clear_all()
 
-depth, width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot = args_prs_train() # parse arguments 
-
-
+depth, width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout = args_prs_train() # parse arguments 
 
 H, W, train, trainpose, eval, evalpose, test, testpose, focal, data_name = test_train_split(data_path)
 
@@ -34,21 +32,24 @@ writer = SummaryWriter(f'../logs/{data_name}/') # tensorboard writer
 
 eval = torch.from_numpy(eval) # convert to torch
 
-model = MyModel(D=depth, W=width, L_embed=pos_enc_l)
+model = MyModel(D=depth, W=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
 
 
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4) 
+optimizer = torch.optim.Adam(model.parameters(), lr=4e-4) 
+#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 
-train_dataset = NeRFDataset(train, trainpose)
+train_dataset = EDU_NeRFDataset(train, trainpose)
 train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 data_iter = iter(train_dataloader)
 
-
-pts_flat_eval, z_vals_eval = torch_get_rays_sample_space(H, W, focal, evalpose, 2., 6., N_samples, rand=False) # prepare the one-time eval 3D sampled space
-pts_flat_enc_eval = posenc(pts_flat_eval, pos_enc_l)  # positional encoding
-
 loss = nn.MSELoss()
 t = time.time()
+
+pts_flat_eval, z_vals_eval = torch_get_rays_sample_space(H, W, focal, evalpose, 2., 6., N_samples, rand=True) # prepare the one-time eval 3D sampled space
+pts_flat_enc_eval = posenc(pts_flat_eval, pos_enc_l)  # positional encoding
+best_loss = 100
+eval_loss = 102
+
 for i in range(N_iters+1):
     try:
         target, pose = next(data_iter)
@@ -60,7 +61,7 @@ for i in range(N_iters+1):
     pose = pose.squeeze(0).numpy()  
     #plt.imshow(target)
     #plt.show()
-    pts_flat, z_vals = torch_get_rays_sample_space(H, W, focal, pose, 2., 6., N_samples, rand=False) # sampling space accordingly 
+    pts_flat, z_vals = torch_get_rays_sample_space(H, W, focal, pose, 2., 6., N_samples, rand=True) # sampling 3D space  
     
     pts_flat_enc = posenc(pts_flat, pos_enc_l)  # positional encoding
 
@@ -73,8 +74,8 @@ for i in range(N_iters+1):
 
     raw = raw.view(H, W, N_samples, 4)
     
-    sigma_a = F.relu(raw[..., 3]) # extracting density
-    rgb = torch.sigmoid(raw[..., :3]) # extracting rgb color
+    sigma_a = F.relu(raw[..., 3]) 
+    rgb = torch.sigmoid(raw[..., :3]) 
     
     rgb_render, depth, acc = render_rays(sigma_a, rgb, z_vals)
     
@@ -83,15 +84,16 @@ for i in range(N_iters+1):
     train_loss.backward()
     
     optimizer.step()
-    
+    #scheduler.step() 
+
     if i%i_plot==0 and i!=0:
 
         with torch.no_grad():
             model.eval() 
             eval_raw = model(pts_flat_enc_eval).view(100, 100, N_samples, 4)
             #print(eval_raw)
-            eval_sigma_a = F.relu(eval_raw[..., 3]) # extracting density
-            eval_rgb = torch.sigmoid(eval_raw[..., :3]) # extracting rgb color
+            eval_sigma_a = F.relu(eval_raw[..., 3]) 
+            eval_rgb = torch.sigmoid(eval_raw[..., :3])
             rgb_render_eval, depth_map, acc_map = render_rays(eval_sigma_a, eval_rgb, z_vals_eval)
             
             eval_loss = loss(rgb_render_eval, eval)
@@ -109,12 +111,13 @@ for i in range(N_iters+1):
         writer.add_image('rendered image', rgb_render_rep, global_step=i)
 
 
-    if i%save_i==0 and i!=0:
-        model_path = f'../logs/{data_name}/model_state_dict_step_{i}.pth'
+    if eval_loss < best_loss  and i > 50:
+        best_loss = eval_loss  # Update the best known loss
+        model_path = f'../logs/{data_name}/model_state_dict_step_best.pth'
         torch.save(model.state_dict(), model_path)
-        print(f"model saved at iteration {i}")
-        
+        print(f"New best model saved at iteration {i} with loss {best_loss}")
+
 
 total_t = time.time() - t
-print('Done, total time: '+total_t)
+print('Done, total time: '+str(total_t))
 writer.close() 

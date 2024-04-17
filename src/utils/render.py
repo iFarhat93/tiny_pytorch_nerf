@@ -66,7 +66,7 @@ H, W = images.shape[1:3]
 
 for th in tqdm(np.linspace(0., 360., 120, endpoint=False)):
     c2w = pose_spherical(th, -30., 4.)
-    pts_flat, z_vals = get_rays_sample_space(H, W, focal, c2w[:3,:4], 2., 6., 64, rand=False)
+    pts_flat, z_vals = get_rays_sample_space(H, W, focal, c2w[:3,:4], 2., 6., 64, rand=True)
     pts_flat_enc = posenc(pts_flat, 6)
     with torch.no_grad(): 
         predictions = model(pts_flat_enc)
@@ -78,7 +78,7 @@ for th in tqdm(np.linspace(0., 360., 120, endpoint=False)):
     rgb_render, depth, acc = render_rays(sigma_a, rgb, z_vals)
     frames.append((255 * np.clip(rgb_render.cpu().detach().numpy(), 0, 1)).astype(np.uint8))
     
-f = 'video.mp4'
+f = f'{data_name}.mp4'
 imageio.mimwrite(f, frames, fps=30, quality=7)
 
 mp4 = open(f'{data_name}.mp4','rb').read()

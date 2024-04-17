@@ -27,7 +27,7 @@ def test_train_split(data_path):
     data_name = os.path.splitext(os.path.basename(data_path))[0]
     return H, W, train, trainpose, eval, evalpose, test, testpose, focal, data_name
 
-class NeRFDataset(Dataset):
+class EDU_NeRFDataset(Dataset):
     def __init__(self, images, poses):
         self.images = images
         self.poses = poses

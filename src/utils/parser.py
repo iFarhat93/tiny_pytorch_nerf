@@ -19,6 +19,10 @@ def args_prs_train():
                         help='Model width (default: 256)')
     parser.add_argument('--pos_enc', type=int, required=False, default=6,
                         help='Positional encodings dimension (default: 6)')
+    parser.add_argument('--batch_norm', type=bool, required=False, default=False,
+                        help='enable batch normalization (default: False)')
+    parser.add_argument('--dropout', type=bool, required=False, default=False,
+                        help='enable dropout (default: False)')
 
     # Parse arguments
     args = parser.parse_args()
@@ -31,9 +35,12 @@ def args_prs_train():
     N_iters = args.N_iter
     save_i = args.save_pts
     data_path = args.npz_file
+    batch_norm = args.batch_norm
+    dropout = args.dropout
+
     i_plot = 2
 
-    return depth, width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot
+    return depth, width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout
 
 def args_prs_load():
 
