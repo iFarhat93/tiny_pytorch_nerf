@@ -1,6 +1,6 @@
 from data_load import test_train_split
 from data_load import EDU_NeRFDataset
-from model import MyModel, EnhancedModel
+from model import MyModel
 from pos_encoding import posenc
 from utils.ray_marching import torch_get_rays_sample_space
 from utils.ray_marching import render_rays
@@ -23,7 +23,7 @@ import torch.optim as optim
 
 clear_all()
 
-depth, width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout = args_prs_train() # parse arguments 
+width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout = args_prs_train() # parse arguments 
 
 H, W, train, trainpose, eval, evalpose, test, testpose, focal, data_name = test_train_split(data_path)
 
@@ -32,10 +32,10 @@ writer = SummaryWriter(f'../logs/{data_name}/') # tensorboard writer
 
 eval = torch.from_numpy(eval) # convert to torch
 
-model = MyModel(D=depth, W=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
+model = MyModel(widths=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
 
 
-optimizer = torch.optim.Adam(model.parameters(), lr=4e-4) 
+optimizer = torch.optim.Adam(model.parameters(), lr=5e-4) 
 #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 
 train_dataset = EDU_NeRFDataset(train, trainpose)
@@ -111,7 +111,11 @@ for i in range(N_iters+1):
         writer.add_image('rendered image', rgb_render_rep, global_step=i)
 
 
-    if eval_loss < best_loss  and i > 50:
+    if i%save_i==0 and i>1500 :
+        model_path = f'../logs/{data_name}/model_state_dict_step_latest.pth'
+        torch.save(model.state_dict(), model_path)
+        print(f"latest model saved at iteration {i} with loss {best_loss}")
+    if i > 50 and eval_loss<best_loss :
         best_loss = eval_loss  # Update the best known loss
         model_path = f'../logs/{data_name}/model_state_dict_step_best.pth'
         torch.save(model.state_dict(), model_path)

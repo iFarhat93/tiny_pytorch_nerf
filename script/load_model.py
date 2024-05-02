@@ -8,6 +8,7 @@ from model import MyModel
 from pos_encoding import posenc
 from utils.ray_marching import get_rays_sample_space
 from utils.ray_marching import render_rays
+from utils.parser import args_prs_load
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -15,23 +16,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
-model = MyModel(D=8, W=256, L_embed=6)
+data_path, model_path, width, pos_enc_l, N_samples, batch_norm, dropout  = args_prs_load() # parse arguments 
 
-parser = argparse.ArgumentParser(description='Input samples for the training process.')
-parser.add_argument('--npz_file', type=str, required=True,
-                        help='compressed numpy where you have: images, poses and focal info')
-parser.add_argument('--model_path', type=str, required=True,
-                        help='compressed numpy where you have: images, poses and focal info')
-
-
-args = parser.parse_args()
-# data prep 
-data_path = args.npz_file
-model_path = args.model_path
 data_name = os.path.splitext(os.path.basename(data_path))[0]
 
 # preapring model arch
-model = MyModel(D=8, W=256, L_embed=6)
+
+model = MyModel(widths=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
 model.load_state_dict(torch.load(model_path))
 model.eval() 
 print(model)
