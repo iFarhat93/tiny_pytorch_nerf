@@ -2,7 +2,7 @@ from data_load import test_train_split
 from data_load import EDU_NeRFDataset
 from model import MyModel
 from pos_encoding import posenc
-from utils.ray_marching import torch_get_rays_sample_space
+from utils.ray_marching import get_rays_sample_space
 from utils.ray_marching import render_rays
 from utils.parser import args_prs_train
 from utils.cache import clear_all
@@ -19,18 +19,19 @@ import argparse
 from torch.utils.data import DataLoader
 import torch.optim as optim
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # device definition
 
 clear_all()
 
 width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout = args_prs_train() # parse arguments 
 
 H, W, train, trainpose, eval, evalpose, test, testpose, focal, data_name = test_train_split(data_path)
+print(width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout)
 
 writer = SummaryWriter(f'../logs/{data_name}/') # tensorboard writer
 
 
-eval = torch.from_numpy(eval) # convert to torch
+eval = torch.from_numpy(eval)
+
 
 model = MyModel(widths=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
 
@@ -45,7 +46,7 @@ data_iter = iter(train_dataloader)
 loss = nn.MSELoss()
 t = time.time()
 
-pts_flat_eval, z_vals_eval = torch_get_rays_sample_space(H, W, focal, evalpose, 2., 6., N_samples, rand=True) # prepare the one-time eval 3D sampled space
+pts_flat_eval, z_vals_eval = get_rays_sample_space(H, W, focal, evalpose, 2., 6., N_samples, rand=True) # prepare the one-time eval 3D sampled space
 pts_flat_enc_eval = posenc(pts_flat_eval, pos_enc_l)  # positional encoding
 best_loss = 100
 eval_loss = 102
@@ -61,7 +62,7 @@ for i in range(N_iters+1):
     pose = pose.squeeze(0).numpy()  
     #plt.imshow(target)
     #plt.show()
-    pts_flat, z_vals = torch_get_rays_sample_space(H, W, focal, pose, 2., 6., N_samples, rand=True) # sampling 3D space  
+    pts_flat, z_vals = get_rays_sample_space(H, W, focal, pose, 2., 6., N_samples, rand=True) # sampling 3D space  
     
     pts_flat_enc = posenc(pts_flat, pos_enc_l)  # positional encoding
 
