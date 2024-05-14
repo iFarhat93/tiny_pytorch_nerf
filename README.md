@@ -1,4 +1,4 @@
-# Understanding NeRF in a small scale
+# Understanding NeRF on a small scale
 
 ### [Medium Article]() | [![Changelog](https://img.shields.io/badge/💡-Changelog-informational.svg?style=flat)](Changelog.md) | [![Report Issue](https://img.shields.io/badge/🐛-Report_Issue-yellow.svg?style=flat)](https://github.com/iFarhat93/tiny_pytorch_nerf/issues)
 | [![Submit Changes](https://img.shields.io/badge/👐-Submit_Changes-brightgreen.svg?style=flat)](https://github.com/iFarhat93/tiny_pytorch_nerf/pulls)
