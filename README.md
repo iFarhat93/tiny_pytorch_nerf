@@ -1,6 +1,6 @@
 # Understanding NeRF on a small scale
 
-### [Medium Article]() | [![Changelog](https://img.shields.io/badge/💡-Changelog-informational.svg?style=flat)](Changelog.md) | [![Report Issue](https://img.shields.io/badge/🐛-Report_Issue-yellow.svg?style=flat)](https://github.com/iFarhat93/tiny_pytorch_nerf/issues)
+### [Article](https://radiancefields.com/understanding-nerf-on-a-small-scale) | [![Changelog](https://img.shields.io/badge/💡-Changelog-informational.svg?style=flat)](Changelog.md) | [![Report Issue](https://img.shields.io/badge/🐛-Report_Issue-yellow.svg?style=flat)](https://github.com/iFarhat93/tiny_pytorch_nerf/issues)
 | [![Submit Changes](https://img.shields.io/badge/👐-Submit_Changes-brightgreen.svg?style=flat)](https://github.com/iFarhat93/tiny_pytorch_nerf/pulls)
 
 This repository is currently under development. Features and functionalities may be added or improved in the future.
