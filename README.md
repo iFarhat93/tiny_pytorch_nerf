@@ -56,8 +56,8 @@ The implementation is flexible for users to manipulate by changing the model dep
 This image shows a subset of the Lego dataset, specifically 100 images that have been resized to 100x100 pixels. These images serve as the input data for training the tiny_pytorch_nerf.
 
 ## Output
+[![Output Data Visualization](data/data.png)](figures/lego.mp4)
 
-![Output Data Visualization](figures/lego.mp4)
 
 A continuous rendering of a 360-degree view of the Lego dataset after a number of training steps.
 
