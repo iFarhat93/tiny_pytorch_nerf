@@ -1,6 +1,6 @@
 from data_load import test_train_split
 from data_load import EDU_NeRFDataset
-from model import MyModel
+from model import MyModel, KANModel
 from pos_encoding import posenc
 from utils.ray_marching import get_rays_sample_space
 from utils.ray_marching import render_rays
@@ -19,7 +19,7 @@ import argparse
 from torch.utils.data import DataLoader
 import torch.optim as optim
 
-
+torch.manual_seed(42)
 clear_all()
 
 width, pos_enc_l, N_samples, N_iters, save_i, data_path, i_plot, batch_norm, dropout = args_prs_train() # parse arguments 
@@ -34,7 +34,11 @@ eval = torch.from_numpy(eval)
 
 
 model = MyModel(widths=width, L_embed=pos_enc_l, use_dropout=dropout, use_batch_norm=batch_norm)
-
+input_dim = 3 + 3 * 2 * pos_enc_l  
+attention_dim = 128  
+output_dim = 4  
+n_heads = 4  
+KANModel = KANModel(input_dim, attention_dim, output_dim, n_heads)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-4) 
 #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
@@ -67,7 +71,7 @@ for i in range(N_iters+1):
     pts_flat_enc = posenc(pts_flat, pos_enc_l)  # positional encoding
 
     model.train()
-       
+    #KANModel.train()
     optimizer.zero_grad()
 
     raw = model(pts_flat_enc)
