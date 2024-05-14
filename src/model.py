@@ -50,3 +50,27 @@ class MyModel(nn.Module):
         x = self.output_layer(x)
         return x
 
+
+class KANModel(nn.Module):
+    def __init__(self, input_dim, attention_dim, output_dim, n_heads=1, dropout_rate=0.1):
+        super(KANModel, self).__init__()
+        self.attention_dim = attention_dim
+        self.n_heads = n_heads
+        self.key = nn.Linear(input_dim, attention_dim * n_heads)
+        self.query = nn.Linear(input_dim, attention_dim * n_heads)
+        self.value = nn.Linear(input_dim, attention_dim * n_heads)
+        self.output_layer = nn.Linear(attention_dim * n_heads, output_dim)
+        self.dropout = nn.Dropout(dropout_rate)
+        
+    def forward(self, x):
+        keys = self.key(x).view(-1, self.n_heads, self.attention_dim)
+        queries = self.query(x).view(-1, self.n_heads, self.attention_dim)
+        values = self.value(x).view(-1, self.n_heads, self.attention_dim)
+        
+        attention_scores = torch.matmul(queries, keys.transpose(-2, -1)) / (self.attention_dim ** 0.5)
+        attention_weights = F.softmax(attention_scores, dim=-1)
+        attention_weights = self.dropout(attention_weights)
+        
+        weighted_values = torch.matmul(attention_weights, values).view(-1, self.n_heads * self.attention_dim)
+        output = self.output_layer(weighted_values)
+        return output
